@@ -8,8 +8,12 @@ def fuzzy_bisection(ground_state, l, r, d, tolerence, i, hamil, c1, c2, a_max, m
     print("d: ", d)
     print("left: ", l)
     print("right: ", r)
-    if np.abs((r+l)/2 - a_max) < tolerence or i>max_iter:
-        print("End of Search! \n Error: " + str(np.abs((r+l)/2 - a_max)))
+    a_est = (r+l)/2
+    eigv_est = (2*np.arccos(a_est) - c2)/c1
+    eigv = (2*np.arccos(a_max) - c2)/c1
+    err = np.abs(eigv_est - eigv)
+    if err < tolerence or i>max_iter:
+        print("End of Search! \n Error: ", err)
         return ((r+l)/2)
     
     # TODO: Determine d depending on the interval length.
@@ -21,10 +25,10 @@ def fuzzy_bisection(ground_state, l, r, d, tolerence, i, hamil, c1, c2, a_max, m
     print("Success Prob: ", A)
     
     if A > 0.6:
-        return fuzzy_bisection(ground_state, (r+l)/2 - h, r, d, tolerence, i+1, hamil, c1, c2, a_max,)
+        return fuzzy_bisection(ground_state, (r+l)/2 - h, r, d, tolerence, i+1, hamil, c1*1.8, c2, a_max,)
     elif A < 0.4:
-        return fuzzy_bisection(ground_state, l, (r+l)/2 + h, d, tolerence, i+1, hamil, c1, c2, a_max,)
+        return fuzzy_bisection(ground_state, l, (r+l)/2 + h, d, tolerence, i+1, hamil, c1*1.8, c2, a_max,)
     else:
         print("Not steep enough!")    
         d = d + 4
-        return fuzzy_bisection(ground_state, l-h, r+h, d, tolerence, i+1, hamil, c1, c2, a_max)
+        return fuzzy_bisection(ground_state, l-h, r+h, d, tolerence, i+1, hamil, c1*1.5, c2, a_max)

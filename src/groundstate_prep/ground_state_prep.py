@@ -44,21 +44,21 @@ def get_success_prob(state, x, d, c, max_iter_for_phis, reps,  hamil, steep = 0.
             break
         except CompletionError:
             print("Completion Error encountered!")
-            if i>max_iter:
+            if i>max_iter_for_phis:
                 raise Exception("Max Iteration for estimating the phis breached!")
             i = i + 1
             c = c - 0.01
             print(f"c updated to {c}!")
-            if i > max_iter / 2:
+            if i > max_iter_for_phis / 2:
                 print(f"QSP did not work for d = {d}, updating d to {d-4}")
                 d = d - 4
         except AngleFindingError:
             print("AngleFindingError encountered!")
-            if i>max_iter:
+            if i>max_iter_for_phis:
                 raise Exception("Max Iteration for estimating the phis breached!")
             i = i + 1
             
-            if i > max_iter / 2:
+            if i > max_iter_for_phis / 2:
                 print(f"QSP did not work for d = {d}, updating d to {d-4}")
                 d = d - 4
 
