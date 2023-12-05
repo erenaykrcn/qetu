@@ -2,14 +2,21 @@ import qiskit
 import h5py
 import os
 import numpy as np
+from pyqsp.completion import CompletionError
+from pyqsp.angle_sequence import AngleFindingError
 from qiskit.quantum_info.synthesis.two_qubit_decompose import TwoQubitBasisDecomposer
 from qiskit.circuit.library import CXGate
 from qiskit.circuit.library import StatePreparation
 from qiskit import QuantumCircuit, Aer, transpile, execute
 from qiskit.providers.aer.noise import NoiseModel, errors
+import rqcopt as oc
 
 from ground_state_prep import get_phis
 from utils_gsp import construct_ising_local_term, approx_polynomial, get_phis, qc_U, qc_U_Strang
+
+import sys
+sys.path.append("../../src/rqcopt")
+from optimize import ising1d_dynamics_opt
 
 decomp = TwoQubitBasisDecomposer(gate=CXGate())
 
@@ -50,17 +57,27 @@ def get_error_from_sv(qc, qc_H, depolarizing_error, reps, L, J, g, ev, nshots=1e
     return np.linalg.norm(np.sum(E_nps)/E_nps.size - ev)
 
 
-def prepare_ground_state_qiskit(L, J, g, t, mu, a_values, c2=0, repeat_qetu=3, RQC_layers=3, init_state=None):
+def prepare_ground_state_qiskit(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, repeat_qetu=3, RQC_layers=3, init_state=None):
     V_list = []
     dirname = os.path.dirname(os.path.realpath(__file__))
-    path = os.path.join(dirname, f"../rqcopt/results/ising1d_L{L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
+    path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
 
-    with h5py.File(path, "r") as f:
-        assert f.attrs["L"] == L
-        assert f.attrs["J"] == J
-        assert f.attrs["g"] == g
-        assert f.attrs["t"] == t
-        V_list = list(f["Vlist"])
+    try:
+        with h5py.File(path, "r") as f:
+            assert f.attrs["L"] == L
+            assert f.attrs["J"] == J
+            assert f.attrs["g"] == g
+            assert f.attrs["t"] == t
+            V_list = list(f["Vlist"])
+    except FileNotFoundError:
+        strang = oc.SplittingMethod.suzuki(2, 1)
+        _, coeffs_start_n5 = oc.merge_layers(2*strang.indices, 2*strang.coeffs)
+        # divide by 2 since we are taking two steps
+        coeffs_start_n5 = [0.5*c for c in coeffs_start_n5]
+        print("coeffs_start_n5:", coeffs_start_n5)
+        V_list = ising1d_dynamics_opt(5, t, False, coeffs_start_n5, path, niter=16)
+
+
     perms = [None if i % 2 == 0 else np.roll(range(L), -1) for i in range(len(V_list))]
 
     print("Running decomposition of two-qubit gates of the RQC Circuit...")
@@ -74,7 +91,34 @@ def prepare_ground_state_qiskit(L, J, g, t, mu, a_values, c2=0, repeat_qetu=3, R
 
 
     backend = Aer.get_backend("statevector_simulator")
-    phis = get_phis(mu, 18, 0.005, 0.9)
+
+    phis = []
+    i = 0
+    while True:
+        try:
+            phis = get_phis(mu, d, steep, c=c)
+            break
+        except CompletionError:
+            print("Completion Error encountered!")
+            if i>max_iter_for_phis:
+                raise Exception("Max Iteration for estimating the phis breached!")
+            i = i + 1
+            c = c - 0.01
+            print(f"c updated to {c}!")
+            if i > max_iter_for_phis / 2:
+                print(f"QSP did not work for d = {d}, updating d to {d-4}")
+                d = d - 4
+        except AngleFindingError:
+            print("AngleFindingError encountered!")
+            if i>max_iter_for_phis:
+                raise Exception("Max Iteration for estimating the phis breached!")
+            i = i + 1
+            
+            if i > max_iter_for_phis / 2:
+                print(f"QSP did not work for d = {d}, updating d to {d-4}")
+                d = d - 4
+
+
     print("F(a_max)^2: ", phis[2](a_values[0])**2)
 
     qc_U_ins = qc_U(qcs_rqc, L, perms)
@@ -225,3 +269,103 @@ def qc_QETU_cf_R(qc_U, phis, c2=0):
         qc.append(qc_cfU_R(qc_U, i%2==0, c2).to_gate(), [i for i in range(L+1)])
         qc.rx(-2*phis[i], L)
     return qc
+
+
+def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, RQC_layers=5, init_state=None, split_U=1):
+    t = t/split_U
+    print("dt: ", t)
+    V_list = []
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
+
+    try:
+        with h5py.File(path, "r") as f:
+            assert f.attrs["L"] == L
+            assert f.attrs["J"] == J
+            assert f.attrs["g"] == g
+            assert f.attrs["t"] == t
+            V_list = list(f["Vlist"])
+    except FileNotFoundError:
+        strang = oc.SplittingMethod.suzuki(2, 1)
+        _, coeffs_start_n5 = oc.merge_layers(2*strang.indices, 2*strang.coeffs)
+        # divide by 2 since we are taking two steps
+        coeffs_start_n5 = [0.5*c for c in coeffs_start_n5]
+        print("coeffs_start_n5:", coeffs_start_n5)
+        V_list = ising1d_dynamics_opt(5, t, False, coeffs_start_n5, path, niter=16)
+        
+        if RQC_layers >= 7:
+            print("optimizing RQC for 7 layers")
+            V_list = ising1d_dynamics_opt(7, t, True, niter=200)
+        if RQC_layers == 9:
+            print("optimizing RQC for 9 layers")
+            V_list = ising1d_dynamics_opt(9, t, True, niter=200, tcg_abstol=1e-12, tcg_reltol=1e-10)
+
+
+
+    perms = [None if i % 2 == 0 else np.roll(range(L), -1) for i in range(len(V_list))]
+
+    print("Running decomposition of two-qubit gates of the RQC Circuit...")
+    qcs_rqc = []
+    for V in V_list:
+        #decomp = TwoQubitBasisDecomposer(gate=CXGate())
+        #qc_rqc = decomp(V)
+        qc_rqc = qiskit.QuantumCircuit(2)
+        qc_rqc.unitary(V, [0, 1])
+        qcs_rqc.append(qc_rqc)
+
+
+    backend = Aer.get_backend("statevector_simulator")
+
+    phis = []
+    i = 0
+    while True:
+        try:
+            phis = get_phis(mu, d, steep, c=c)
+            break
+        except CompletionError:
+            print("Completion Error encountered!")
+            if i>max_iter_for_phis:
+                raise Exception("Max Iteration for estimating the phis breached!")
+            i = i + 1
+            c = c - 0.01
+            print(f"c updated to {c}!")
+            if i > max_iter_for_phis / 2:
+                print(f"QSP did not work for d = {d}, updating d to {d-4}")
+                d = d - 4
+        except AngleFindingError:
+            print("AngleFindingError encountered!")
+            if i>max_iter_for_phis:
+                raise Exception("Max Iteration for estimating the phis breached!")
+            i = i + 1
+            
+            if i > max_iter_for_phis / 2:
+                print(f"QSP did not work for d = {d}, updating d to {d-4}")
+                d = d - 4
+
+
+    print("F(a_max)^2: ", phis[2](a_values[0])**2)
+
+    qc_U_ins = qiskit.QuantumCircuit(L)
+    for i in range(split_U):
+        qc_U_ins.append(qc_U(qcs_rqc, L, perms).to_gate(), [i for i in range(L)])
+    qc_QETU = qc_QETU_cf_R(qc_U_ins, phis[0], c2)
+    qc_ins = qiskit.QuantumCircuit(L+1)
+
+
+    backend = Aer.get_backend("unitary_simulator")
+    qc_U_unit = execute(transpile(qc_U_ins), backend).result().get_unitary(qc_U_ins, L+1).data
+    # construct Hamiltonian
+    import qib
+    import scipy
+    latt = qib.lattice.IntegerLattice((L,), pbc=True)
+    field = qib.field.Field(qib.field.ParticleType.QUBIT, latt)
+    hamil = qib.IsingHamiltonian(field, J, 0, g).as_matrix().toarray()
+    U = scipy.linalg.expm(-1j*hamil*t*split_U)
+    print("Time evolution encoding, absolute error: ", np.linalg.norm(U-qc_U_unit, ord=2))
+
+    if init_state is not None:
+        qc_ins.initialize(init_state)
+    qc_ins.append(qc_QETU.to_gate(), [i for i in range(L+1)])
+
+
+    return qc_ins, phis[0]

@@ -216,6 +216,68 @@ def qc_U_Strang(L, J, g, t, nsteps):
             else:
                 U.append(qc_gate.to_gate(), [2*j, 2*j+1])
     return U
+
+
+unnorm_Hadamard = np.array([[1, 1],[1, -1]])
+
+
+def U_tau(H, c1=1):
+    # U will be delivered in the further steps by the Riemannian optimization. 
+    # For now we take it to be a black-box. The default tau is also 1/2 as the
+    # control free implementation rescales the evolution time.
+    expH = expm(-1j * 0.5 * c1 * H )
+    return expH
+
+
+def cfree_shifted_U(U_sh, dagger, c2=0):
+    L = int(np.log(len(U_sh)) / np.log(2))
+    Y = np.array([[0, -1j], [1j, 0]])
+    Z = np.array([[1, 0], [0, -1]])
+    X = np.array([[0, 1], [1, 0]])
+    I = np.identity(2)
+    
+    X_I = X
+    for j in range(L):
+        X_I = np.kron(X_I, I)
+        
+    K = np.identity(1)
+    for j in range(L):
+        if j % 2 == 0:
+            K = np.kron(K, Y)
+        else:
+            K = np.kron(K, Z)
+    
+    # K is controlled by the ancilla qubit, applied when qubit is 0.
+    cK  = (1+0j) * np.identity(2*len(U_sh))
+    offset = len(U_sh)
+    for i in range(offset):
+        for j in range(offset):
+            cK[i][j] = K[i][j]
+    
+    cU = (1+0j) * np.identity(2*len(U_sh))
+    U_ext = np.kron(I, U_sh)
+    cU = cK @ U_ext @ cK
+    
+    # Shift the global phase, controlled by the ancilla.
+    # TODO: Learn if this is physically realizable.
+    cC2 = (1+0j) * np.identity(2*len(U_sh))
+    C2 = expm(-1j*c2*np.identity(offset))
+    for i in range(offset):
+        for j in range(offset):
+            cC2[offset+i][offset+j] = C2[i][j]
+    cU = cC2 @ cU
+    
+    if dagger:
+        cU = X_I @ cU @ X_I
+    return cU
+
+
+def QETU_cf(U, phis, c2=0):
+    Q = S(phis[len(phis)-1], len(U))
+    for i in range(1, len(phis)):
+        Q = Q @ cfree_shifted_U(U, i % 2 == 1, c2) @ S(phis[len(phis)-1-i], len(U))
+    return Q
+
     
 
     

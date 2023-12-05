@@ -1,7 +1,7 @@
 import numpy as np
 from pyqsp.completion import CompletionError
 from pyqsp.angle_sequence import AngleFindingError
-from utils_gsp import QETU, approx_polynomial, get_phis
+from utils_gsp import QETU, approx_polynomial, get_phis, QETU_cf, U_tau
 from qiskit.quantum_info import state_fidelity
 from matplotlib import pyplot as plt
 
@@ -10,7 +10,7 @@ def prepare_ground_state(initial_state, mu, d, c, phis_max_iter,
                          ground_state, L, J, g, ground_eigenvalue,
                          hamil, max_reps=5, tau=1, 
                          shift=0, a_max=1, fidelity_treshold=0.99):
-    success_prob, end_state, poly, phis, layers  = get_success_prob(initial_state, mu, d, c, phis_max_iter, max_reps, hamil, tau=tau, shift=shift, a_max=a_max)
+    success_prob, end_state, poly, phis, layers, QETU_cf_mat  = get_success_prob(initial_state, mu, d, c, phis_max_iter, max_reps, hamil, tau=tau, shift=shift, a_max=a_max)
     eigenvalue_estimate = 0
     print("\nF(a_max) = " + str(poly(a_max)**2))
 
@@ -67,8 +67,9 @@ def get_success_prob(state, x, d, c, max_iter_for_phis, reps,  hamil, steep = 0.
     success_prob = 0
     layer = 0 
     
-    QETU_cf_mat = QETU(hamil, phis[0], tau, shift)
-    
+    #QETU_cf_mat = QETU(hamil, phis[0], tau, shift)
+    QETU_cf_mat = QETU_cf(U_tau(hamil, tau), phis[0], c2=shift)
+
     for i in range(reps):
         layer = i+1
         if reps > 1:
@@ -91,5 +92,5 @@ def get_success_prob(state, x, d, c, max_iter_for_phis, reps,  hamil, steep = 0.
         poly = phis[2]
         if a_max and np.abs(success_prob - poly(a_max)**2) < 1e-5:
             break
-    return success_prob, end_state, poly, phis[0], layer
+    return success_prob, end_state, poly, phis[0], layer, QETU_cf_mat
 
