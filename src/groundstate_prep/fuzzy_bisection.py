@@ -78,14 +78,6 @@ def fuzzy_bisection_noisy(qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2, a_val
     if ground_state is not None:
         np_arr = np.array(execute(transpile(qc), backend).result().get_statevector().data)
         print("state_fidelity:", state_fidelity(np_arr[:2**L], ground_state))
-        #backend = Aer.get_backend("unitary_simulator")
-        #last_layer_unit = execute(transpile(last_layer), backend).result().get_unitary(last_layer, L+1).data
-        #import qib
-        #latt = qib.lattice.IntegerLattice((L,), pbc=True)
-        #field = qib.field.Field(qib.field.ParticleType.QUBIT, latt)
-        #hamil = qib.IsingHamiltonian(field, J, 0, g).as_matrix().toarray()
-        #QETU_cf_mat = QETU_cf(U_tau(hamil, c1), phis, c2=c2)
-        #print("Unit error: ", np.linalg.norm(QETU_cf_mat-last_layer_unit, ord=2))
     
     qc.append(last_layer.to_gate(), [i for i in range(L+1)])
     qc.measure(L, 0)
@@ -99,10 +91,6 @@ def fuzzy_bisection_noisy(qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2, a_val
     noise_model.add_basis_gates(state_prep_gates)
     noise_model.add_all_qubit_quantum_error(x1_error, ['u1', 'u2', 'u3', 'rz', 'sx'])
     noise_model.add_all_qubit_quantum_error(x2_error, ['cu', 'cx','cy', 'cz'])
-
-    #from qiskit.converters import circuit_to_dag
-    #dag_circuit = circuit_to_dag(transpile(qc, basis_gates=noise_model.basis_gates))
-    #print(dag_circuit.count_ops_longest_path())
     print(noise_model)
 
     A = execute(transpile(qc), backend, noise_model=noise_model, shots=nshots).result().get_counts()["0"]/nshots
