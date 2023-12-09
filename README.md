@@ -21,8 +21,8 @@ The work presented in this project delivers an improved error resilience when ex
 
 
 <p align="center">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo0.jpg"  width="60%">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo1.jpg"  width="60%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo0.jpg"  width="30%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo1.jpg"  width="30%">
 <br><b>Figure 3:</b> Linear Transformation of the Hamiltonian, implemented in the Quantum Circuit through changing the time step of the Time Evolution Block (for c1) and applying phase gates (for c2). "d" represents the target digit (d<0 for digits after the floating point) of the search and λ_LowerBound is the lowest value the target eigenvalue can take, given the error margin of the current search stage.
 </p>
 
@@ -30,7 +30,7 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 
 
 <p align="center">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lower_bound_def.jpg"  width="60%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lower_bound_def.jpg"  width="30%">
 <br><b>Figure 4:</b> Definition of the eigenvalue lower bound of the current search stage. It is dependant on the estimation result of the previous stage.
 </p>
 
@@ -39,7 +39,7 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 <p align="center">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/cos1.png">
 <br><b>Figure 5:</b> Cosine tranformation of the previously transformed eigenvalues, through the adaption of (c1, c2). Orange line represents the tanget line to the transformation curve at x = 1. Red points represent the target x values of each search stage and corresponding target digits of each stage. 
-
+<br>
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/cos2.png">
 <br><b>Figure 6:</b> Example target x value (set to 0.75) and corresponding error margins in "x" and "a" space, for a succesful search. 
 </p>
