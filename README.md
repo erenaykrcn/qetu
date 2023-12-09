@@ -21,8 +21,8 @@ The work presented in this project delivers an improved error resilience when ex
 
 
 <p align="center">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo0.jpg"  width="30%">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo1.jpg"  width="30%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo0.jpg"  width="40%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo1.jpg"  width="55%">
 <br><b>Figure 3:</b> Linear Transformation of the Hamiltonian, implemented in the Quantum Circuit through changing the time step of the Time Evolution Block (for c1) and applying phase gates (for c2). "d" represents the target digit (d<0 for digits after the floating point) of the search and λ_LowerBound is the lowest value the target eigenvalue can take, given the error margin of the current search stage.
 </p>
 
