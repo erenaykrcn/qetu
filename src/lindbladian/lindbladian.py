@@ -34,7 +34,7 @@ def ideal_lindbladian(hamil, L, tau=1, nsteps = 500):
 	return rho, en_list
 
 
-def circuit_implementation_lindbladian(hamil, L, tau=1, r = 1, nsteps = 1000):
+def circuit_implementation_lindbladian(hamil, L, tau=1, r = 1, nsteps = 1000, A=None):
 	eigenvalues, eigenvectors = LA.eig(hamil)
 	idx = eigenvalues.argsort()
 	eigenvalues_sort = eigenvalues[idx]
@@ -47,10 +47,11 @@ def circuit_implementation_lindbladian(hamil, L, tau=1, r = 1, nsteps = 1000):
 	f = lambda t_list: [0.5*(erf_f(t*da)*np.exp(-1j*a*da*t) - erf_f(t*db)*np.exp(-1j*b*db*t)) if t != 0 else 0 for t in t_list]
 
 	# TODO: Why randomized A doesnt work?
-	A = np.array([[-1.24119066+0.j        , -1.83601217+1.00540214j],
-	       [-1.83601217-1.00540214j, -1.64034976+0.j        ]])
 	#A = crandn((2, 2), rng)
 	#A = (A + A.conj().T)*0.5
+	if A is None:
+		A = np.array([[-1.24119066+0.j        , -1.83601217+1.00540214j],
+	       [-1.83601217-1.00540214j, -1.64034976+0.j        ]])
 
 	Z = np.array([[1, 0], [0, -1]])
 	X = np.array([[0, 1], [1, 0]])
