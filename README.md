@@ -19,7 +19,6 @@ The work presented in this project delivers an improved error resilience when ex
 
 <br>The adaptive fuzzy bisection search is implemented through estimating one digit after the floating point by the end of each search. The following linear transformation is applied in the beginning of each search:
 
-
 <p align="center">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo0.jpg"  width="40%">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/eig_trafo1.jpg"  width="48%">
@@ -39,7 +38,41 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 <p align="center">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/cos1.png">
 <br><b>Figure 5:</b> Cosine tranformation of the previously transformed eigenvalues, through the adaption of (c1, c2). Orange line represents the tanget line to the transformation curve at x = 1. Red points represent the target x values of each search stage and corresponding target digits of each stage. 
-<br>
+<br><br>
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/cos2.png">
 <br><b>Figure 6:</b> Example target x value (set to 0.75) and corresponding error margins in "x" and "a" space, for a succesful search. 
 </p>
+
+<br>
+
+<p align="center">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/adaptive_search.png">
+<br><b>Figure 7:</b> Demonstration of how each search, estimating the exact "a" value with around 1e-2 precision, can correctly identify the target digit. We see a trade-off between absolute error and the time step required. 
+</p>
+
+<p align="center">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/.png">
+<br><b>Figure 8:</b> An example search, conducted for target precision d=-3. Resulting estimate is a=0.5765, delivering an absolute error of: 1.547e-05 
+</p>
+
+<hr>
+
+<h3>Ground State Preparation</h3>
+
+Ground is prepared through combining the Lindbladian evolution [3] and QETU Circuits [1]. Outcome of short Lindbladian simulation delivers us a significantly large initial overlap, that is then used as the initial state of QETU to amplify the state fidelity to the ground state. 
+
+<p align="center">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind_circuit.png" width="45%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind.png" width="45%">
+<br><b>Figure 9:</b> Linbladian Evolution. Diagram on the right demonstrates the convergence of the initial state, whose overlap with the ground state is numerically zero and the end state's overlap is recorded as 0.773 for 1500 steps with each time step set to 1. Circuit on the left, shows a potential implementation of the algorithm.
+</p>
+
+<p align="center">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/qetu.png">
+<br><b>Figure 10:</b> QETU Circuit, used to amplify the state fidelity of the output of the short Lindbladian evolution. 
+</p>
+
+<br><br><br>
+[1] Yulong Dong, Lin Lin, and Yu Tong PRX Quantum 3, 040305
+[2] Ayse Kotil, Rahul Banerjee, Qunsheng Huang, Christian B. Mendl, Riemannian quantum circuit optimization for Hamiltonian simulation (arXiv:2212.07556)
+[3] Z. Ding, C.-F. Chen, L. Lin, Single-ancilla ground state preparation via Lindbladians <a href="https://arxiv.org/abs/2308.15676">arxiv.org/abs/2308.15676</a>
