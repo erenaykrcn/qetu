@@ -51,7 +51,7 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 </p>
 
 <p align="center">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/.png">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/exp_search.png">
 <br><b>Figure 8:</b> An example search, conducted for target precision d=-3. Resulting estimate is a=0.5765, delivering an absolute error of: 1.547e-05 
 </p>
 
