@@ -4,7 +4,7 @@
 The work presented in this project delivers an improved error resilience when extracting the eigenvalue information from the ground state prepared through the Quantum Eigenvalue Transformation of Unitary Matrices (QETU) Algorithm, presented by L. Lin et al. [1] Through our approach, we can estimate the eigenvalue up to any arbitary precision under depolarizing probability up to 1e-3 for two qubit gates and up to 1e-4 for single qubit gates. <br>
 <br>
 <p align="center">
-  <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/adaptive_fuzzy_noise.jpg">
+  <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/adaptive_fuzzy_noise.png">
 
   <b>Figure 1:</b> Absolute Error rate of the estimated ground state energy plotted against the time step required in each time evolution block, under different noise levels. Transverse Field Ising Hamiltonian (TFIM) with parameters: L=6, J=1, h=0, g=1 is used.
 </p>
