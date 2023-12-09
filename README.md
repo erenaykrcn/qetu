@@ -62,8 +62,8 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 Ground is prepared through combining the Lindbladian evolution [3] and QETU Circuits [1]. Outcome of short Lindbladian simulation delivers us a significantly large initial overlap, that is then used as the initial state of QETU to amplify the state fidelity to the ground state. 
 
 <p align="center">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind_circuit.png" width="45%">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind.png" width="45%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind_circuit.png" width="65%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind.png" width="30%">
 <br><b>Figure 9:</b> Linbladian Evolution. Diagram on the right demonstrates the convergence of the initial state, whose overlap with the ground state is numerically zero and the end state's overlap is recorded as 0.773 for 1500 steps with each time step set to 1. Circuit on the left, shows a potential implementation of the algorithm.
 </p>
 
@@ -73,6 +73,6 @@ Ground is prepared through combining the Lindbladian evolution [3] and QETU Circ
 </p>
 
 <br><br><br>
-[1] Yulong Dong, Lin Lin, and Yu Tong PRX Quantum 3, 040305
-[2] Ayse Kotil, Rahul Banerjee, Qunsheng Huang, Christian B. Mendl, Riemannian quantum circuit optimization for Hamiltonian simulation (arXiv:2212.07556)
+[1] Yulong Dong, Lin Lin, and Yu Tong PRX Quantum 3, 040305 <br>
+[2] Ayse Kotil, Rahul Banerjee, Qunsheng Huang, Christian B. Mendl, Riemannian quantum circuit optimization for Hamiltonian simulation (arXiv:2212.07556) <br>
 [3] Z. Ding, C.-F. Chen, L. Lin, Single-ancilla ground state preparation via Lindbladians <a href="https://arxiv.org/abs/2308.15676">arxiv.org/abs/2308.15676</a>
