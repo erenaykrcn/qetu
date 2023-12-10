@@ -78,7 +78,7 @@ QETU Algorithm is based on a symmetric Quantum Signal Processing circuit, where 
 
 <p align="center">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/QETU_plot.jpg">
-<br><b>Figure 11:</b> Example target polynomial, approximated through convex optimization with Chebyshev polynomials. After determining the target polynomial, we optimize phases for the QETU circuit. Similar approach is employed during fuzzy bisection search. The value of the polynomial at the exact "a" value (for the given (c1, c2)), norm squared, gives us the probability of measuring |0> at the ancilla qubit. 
+<br><b>Figure 11:</b> Example target polynomial, approximated through convex optimization with Chebyshev polynomials. After determining the target polynomial, we optimize phases for the QETU circuit. Similar approach is employed during fuzzy bisection search. The value of the polynomial at the exact "a" value (for the given (c1, c2)), norm squared, gives us the probability of measuring |0> at the ancilla qubit. U_phi represents the QETU circuit for the optimized phases.
 </p>
 
 <br><br><br>
