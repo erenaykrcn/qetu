@@ -62,8 +62,8 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 Ground state is prepared through combining the Lindbladian evolution [3] and QETU Circuits [1]. Outcome of short Lindbladian simulation delivers us a significantly large initial overlap, that is then used as the initial state of QETU to amplify the state fidelity to the ground state. 
 
 <p align="center">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind_circuit.png" width="65%">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind.png" width="30%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind_circuit.png" width="68%">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind.png" width="27%">
 <br><b>Figure 9:</b> Linbladian Evolution. Diagram on the right demonstrates the convergence of the initial state, whose overlap with the ground state is numerically zero and the end state's overlap is recorded as 0.773 for 1500 steps with each time step set to 1. Circuit on the left, shows a potential implementation of the algorithm.
 </p>
 
