@@ -77,8 +77,8 @@ QETU Algorithm is based on a symmetric Quantum Signal Processing circuit, where 
 <br> The cut-off value of the step function (mu) has to be guessed. Ideally, the mu value cuts the ground state energy and the first excited state energy directly in the middle. However, if our guess for mu is poor, we can compensate it by repeating the QETU circuit more times. This due to the monotonously increasing nature of the polynomial and the monotonously decreasing nature of the spectrum in "a" space due to the transformations applied above. 
 
 <p align="center">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/QETU_plot.jpg">
-<br><b>Figure 11:</b> Example target polynomial, approximated through convex optimization with Chebyshev polynomials. After determining the target polynomial, we optimize phases for the QETU circuit. Similar approach is employed during fuzzy bisection search. The value of the polynomial at the exact "a" value (for the given (c1, c2)), norm squared, gives us the probability of measuring |0> at the ancilla qubit. U_phi represents the QETU circuit for the optimized phases.
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/poly_plot.jpg">
+<br><b>Figure 11:</b> Example target polynomial, approximated through convex optimization with Chebyshev polynomials. After determining the target polynomial, we optimize phases for the QETU circuit. Similar approach is employed during fuzzy bisection search. The value of the polynomial at the exact "a" value (for the given (c1, c2)), norm squared, gives us the probability of measuring |0> at the ancilla qubit.
 </p>
 
 <br><br><br>
