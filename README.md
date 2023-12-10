@@ -13,8 +13,8 @@ The work presented in this project delivers an improved error resilience when ex
 
 
 <p align="center">
-<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/layers_vs_timestep.jpg">
-<br><b>Figure 2:</b> Number of two qubit gate layers used to encode the time evolution block for different time steps. RQC-Opt Algorithm is used to reduce the number of layers.
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/time_ev.png">
+<br><b>Figure 2:</b> Demonstration of how we encoded the time evolution block in the quantum circuits. On the left, the number of two qubit gate layers per time evolution block with respect to the total time step is given. For smaller total time steps, we do not divide it up to smaller bits (nsteps=1) and optimize the block with RQC-Opt for the total time step. For larger time steps, we divide the total time and optimize the circuit for a smaller dt = (Total Time Step) / nsteps. On the right, we see the optimization results of RQC-Opt, ran for dt values with different orders of magnitude. We observe that by increasing the total number of layers up to 11, we can approximate large time steps with high precision.
 </p>
 
 <br>The adaptive fuzzy bisection search is implemented through estimating one digit after the floating point by the end of each search. The following linear transformation is applied in the beginning of each search:
@@ -57,9 +57,9 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 
 <hr>
 
-<h3>Ground State Preparation</h3>
+<h2>Ground State Preparation</h2>
 
-Ground is prepared through combining the Lindbladian evolution [3] and QETU Circuits [1]. Outcome of short Lindbladian simulation delivers us a significantly large initial overlap, that is then used as the initial state of QETU to amplify the state fidelity to the ground state. 
+Ground state is prepared through combining the Lindbladian evolution [3] and QETU Circuits [1]. Outcome of short Lindbladian simulation delivers us a significantly large initial overlap, that is then used as the initial state of QETU to amplify the state fidelity to the ground state. 
 
 <p align="center">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind_circuit.png" width="65%">
@@ -72,7 +72,18 @@ Ground is prepared through combining the Lindbladian evolution [3] and QETU Circ
 <br><b>Figure 10:</b> QETU Circuit, used to amplify the state fidelity of the output of the short Lindbladian evolution. 
 </p>
 
+QETU Algorithm is based on a symmetric Quantum Signal Processing circuit, where the target polynomial is an even step function. After applying this circuit to a given input state; the overlap of the prepared state to the eigenstates, whose eigenenergies correspond to "a" values greater than mu, are amplified. We make use of this circuit to amplify only the overlap with the ground state. To achieve this, we first apply a linear transformation (c1, c2), in order to fit the whole spectrum between [0, pi]. This way we make sure that the cosine transformation a = cos((c1*lambda + c2)/2) is bijective and increasing eigenvalues are mapped to monotonously decreasing "a" values between [0, 1]. 
+
+<br> The cut-off value of the step function (mu) has to be guessed. Ideally, the mu value cuts the ground state energy and the first excited state energy directly in the middle. However, if our guess for mu is poor, we can compensate it by repeating the QETU circuit more times. This due to the monotonously increasing nature of the polynomial and the monotonously decreasing nature of the spectrum in "a" space due to the transformations applied above. 
+
+<p align="center">
+<img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/QETU_plot.jpg">
+<br><b>Figure 11:</b> Example target polynomial, approximated through convex optimization with Chebyshev polynomials. After determining the target polynomial, we optimize phases for the QETU circuit. Similar approach is employed during fuzzy bisection search. The value of the polynomial at the exact "a" value (for the given (c1, c2)), norm squared, gives us the probability of measuring |0> at the ancilla qubit. 
+</p>
+
 <br><br><br>
+
+<h3>References</h3>
 [1] Yulong Dong, Lin Lin, and Yu Tong PRX Quantum 3, 040305 <br>
 [2] Ayse Kotil, Rahul Banerjee, Qunsheng Huang, Christian B. Mendl, Riemannian quantum circuit optimization for Hamiltonian simulation (arXiv:2212.07556) <br>
 [3] Z. Ding, C.-F. Chen, L. Lin, Single-ancilla ground state preparation via Lindbladians <a href="https://arxiv.org/abs/2308.15676">arxiv.org/abs/2308.15676</a>
