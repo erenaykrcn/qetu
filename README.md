@@ -1,6 +1,8 @@
 ﻿<h1>Noise Tolerant Ground State Energy Estimation through Quantum Eigenvalue Transformation of Unitary Matrices (QETU)</h1> 
 
 <br>
+<b>Author: </b> Karacan, Erenay. Department of Electrical Engineering and Information Science, Technical University of Munich.
+<br>
 The work presented in this project delivers an improved error resilience when extracting the eigenvalue information from the ground state prepared through the Quantum Eigenvalue Transformation of Unitary Matrices (QETU) Algorithm, presented by L. Lin et al. [1] Through our approach, we can estimate the eigenvalue up to any arbitary precision under depolarizing probability up to 1e-3 for two qubit gates and up to 1e-4 for single qubit gates. <br>
 <br>
 <p align="center">
