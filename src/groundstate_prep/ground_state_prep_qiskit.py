@@ -354,6 +354,7 @@ def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, 
 
     backend = Aer.get_backend("unitary_simulator")
     qc_U_unit = execute(transpile(qc_U_ins), backend).result().get_unitary(qc_U_ins, L+1).data
+    
     # construct Hamiltonian
     import qib
     import scipy
