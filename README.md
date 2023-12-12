@@ -62,7 +62,7 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 <p>We analyze the same estimation process for L=8 sites, while using the optimization results for the L=6 case. We observe that we can use the Riemannian optimized Time Evolution Block for time steps around dt = 1. However, for larger time steps we cannot optimize the two qubit gates for L=6 and use it for L=8. Hence, after a certain target precision, circuit depth starts scaling exponentially and noise becomes prominent. The estimation results for L=8 while using the optimization results from L=6, are as follows:  </p>
 
 <p align="center">
-  <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/L8_results.png">
+  <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/L8_results.png">
 </p>
 <hr>
 
