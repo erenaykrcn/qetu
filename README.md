@@ -63,6 +63,8 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 
 <p align="center">
   <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/L8_results.png">
+  
+  <br><b>Figure 9:</b>  Absolute Error rate of the estimated ground state energy plotted against the time step required in each time evolution block, under different noise levels. Transverse Field Ising Hamiltonian (TFIM) with parameters: L=8, J=1, h=0, g=1 is used. For encoding the time evolution block, the same two qubit gates from the optimization for L = 6 are used, up until the time step ≈ 10. For the time steps larger than this, we split the total time into dt = t / nsteps values, such that dt stays smaller than 10. This introduces an exponential scaling for the circuit depth after a certain target precision of around 1e-05 and smaller. Hence, the effect of noise becomes more prominent and we observe plateaus for the simulations with noise.
 </p>
 <hr>
 
@@ -73,12 +75,12 @@ Ground state is prepared through combining the Lindbladian evolution [3] and QET
 <p align="center">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind_circuit.png" width="68%">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/lind.png" width="27%">
-<br><b>Figure 9:</b> Linbladian Evolution. Diagram on the right demonstrates the convergence of the initial state, whose overlap with the ground state is numerically zero and the end state's overlap is recorded as 0.773 for 1500 steps with each time step set to 1. Circuit on the left, shows a potential implementation of the algorithm.
+<br><b>Figure 10:</b> Linbladian Evolution. Diagram on the right demonstrates the convergence of the initial state, whose overlap with the ground state is numerically zero and the end state's overlap is recorded as 0.773 for 1500 steps with each time step set to 1. Circuit on the left, shows a potential implementation of the algorithm.
 </p>
 
 <p align="center">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/qetu.png">
-<br><b>Figure 10:</b> QETU Circuit, used to amplify the state fidelity of the output of the short Lindbladian evolution. 
+<br><b>Figure 11:</b> QETU Circuit, used to amplify the state fidelity of the output of the short Lindbladian evolution. 
 </p>
 
 QETU Algorithm is based on a symmetric Quantum Signal Processing circuit, where the target polynomial is an even step function. After applying this circuit to a given input state; the overlap of the resulting state to the energy eigenstates, whose eigenenergies correspond to "a" values greater than the cut-off value of the step function, are amplified. We make use of this circuit to amplify only the overlap with the ground state. To achieve this, we first apply a linear transformation (c1, c2), in order to fit the whole spectrum between [0, pi/2]. This way, we make sure that the cosine transformation a = cos((c1*lambda + c2)/2) is bijective and increasing eigenvalues are mapped to monotonously decreasing "a" values between [0, 1]. 
@@ -87,7 +89,7 @@ QETU Algorithm is based on a symmetric Quantum Signal Processing circuit, where 
 
 <p align="center">
 <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/poly_plot.jpg">
-<br><b>Figure 11:</b> Example target polynomial (degree 30), approximated through convex optimization with Chebyshev polynomials. After determining the target polynomial, we optimize phases for the QETU circuit. Similar approach is employed during fuzzy bisection search. The value of the polynomial at the exact "a" value (for the given (c1, c2)), norm squared, gives us the probability of measuring |0> at the ancilla qubit.
+<br><b>Figure 12:</b> Example target polynomial (degree 30), approximated through convex optimization with Chebyshev polynomials. After determining the target polynomial, we optimize phases for the QETU circuit. Similar approach is employed during fuzzy bisection search. The value of the polynomial at the exact "a" value (for the given (c1, c2)), norm squared, gives us the probability of measuring |0> at the ancilla qubit.
 </p>
 
 <br><br><br>
