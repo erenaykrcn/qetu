@@ -43,7 +43,7 @@ def fuzzy_bisection(ground_state, l, r, d, tolerence, i, hamil, c1, c2, a_max, m
 
 def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2, 
                             a_values, depolarizing_error, max_iter = 15, qetu_layers=3, RQC_layers=9, 
-                            qetu_initial_state=None, nshots=1e5, ground_state=None, split_U=15
+                            qetu_initial_state=None, nshots=1e5, ground_state=None, split_U=15, reuse_RQC=0
     ):
     x = (r+l)/2
     a_max = a_values[0]
@@ -60,7 +60,7 @@ def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2,
         return ((r+l)/2)
     
     t = c1/2
-    last_layer, phis = qetu_rqc_oneLayer(L, J, g, t, x, a_values, d=d, c=c, c2=c2, max_iter_for_phis=phis_max_iter, RQC_layers=RQC_layers, split_U=split_U)
+    last_layer, phis = qetu_rqc_oneLayer(L, J, g, t, x, a_values, d=d, c=c, c2=c2, max_iter_for_phis=phis_max_iter, reuse_RQC=reuse_RQC, RQC_layers=RQC_layers, split_U=split_U)
 
     qc = qiskit.QuantumCircuit(L+1, 1)
     backend = Aer.get_backend("statevector_simulator")

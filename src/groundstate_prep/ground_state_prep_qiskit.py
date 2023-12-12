@@ -60,11 +60,11 @@ def get_error_from_sv(qc, qc_H, depolarizing_error, reps, L, J, g, ev, nshots=1e
 def prepare_ground_state_qiskit(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, repeat_qetu=3, RQC_layers=3, init_state=None):
     V_list = []
     dirname = os.path.dirname(os.path.realpath(__file__))
-    path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
+    path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{reuse_RQC if reuse_RQC else L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
 
     try:
         with h5py.File(path, "r") as f:
-            assert f.attrs["L"] == L
+            #assert f.attrs["L"] == L
             assert f.attrs["J"] == J
             assert f.attrs["g"] == g
             assert f.attrs["t"] == t
@@ -271,16 +271,16 @@ def qc_QETU_cf_R(qc_U, phis, c2=0):
     return qc
 
 
-def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, RQC_layers=5, init_state=None, split_U=1):
+def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, RQC_layers=5, init_state=None, split_U=1, reuse_RQC=0):
     t = t/split_U
     print("dt: ", t)
     V_list = []
     dirname = os.path.dirname(os.path.realpath(__file__))
-    path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
+    path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{reuse_RQC if reuse_RQC else L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
 
     try:
         with h5py.File(path, "r") as f:
-            assert f.attrs["L"] == L
+            #assert f.attrs["L"] == L
             assert f.attrs["J"] == J
             assert f.attrs["g"] == g
             assert f.attrs["t"] == t
