@@ -271,34 +271,35 @@ def qc_QETU_cf_R(qc_U, phis, c2=0):
     return qc
 
 
-def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, RQC_layers=5, init_state=None, split_U=1, reuse_RQC=0):
+def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, RQC_layers=5, init_state=None, split_U=1, reuse_RQC=0, qc_U_custom=None):
     t = t/split_U
     print("dt: ", t)
     V_list = []
     dirname = os.path.dirname(os.path.realpath(__file__))
     path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{reuse_RQC if reuse_RQC else L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
 
-    try:
-        with h5py.File(path, "r") as f:
-            #assert f.attrs["L"] == L
-            assert f.attrs["J"] == J
-            assert f.attrs["g"] == g
-            assert f.attrs["t"] == t
-            V_list = list(f["Vlist"])
-    except FileNotFoundError:
-        strang = oc.SplittingMethod.suzuki(2, 1)
-        _, coeffs_start_n5 = oc.merge_layers(2*strang.indices, 2*strang.coeffs)
-        # divide by 2 since we are taking two steps
-        coeffs_start_n5 = [0.5*c for c in coeffs_start_n5]
-        print("coeffs_start_n5:", coeffs_start_n5)
-        V_list = ising1d_dynamics_opt(5, t, False, coeffs_start_n5, path, niter=16)
+    if qc_U_custom is None:	
+        try:
+            with h5py.File(path, "r") as f:
+                #assert f.attrs["L"] == L
+                assert f.attrs["J"] == J
+                assert f.attrs["g"] == g
+                assert f.attrs["t"] == t
+                V_list = list(f["Vlist"])
+        except FileNotFoundError:
+            strang = oc.SplittingMethod.suzuki(2, 1)
+            _, coeffs_start_n5 = oc.merge_layers(2*strang.indices, 2*strang.coeffs)
+            # divide by 2 since we are taking two steps
+            coeffs_start_n5 = [0.5*c for c in coeffs_start_n5]
+            print("coeffs_start_n5:", coeffs_start_n5)
+            V_list = ising1d_dynamics_opt(5, t, False, coeffs_start_n5, path, niter=16)
         
-        if RQC_layers >= 7:
-            print("optimizing RQC for 7 layers")
-            V_list = ising1d_dynamics_opt(7, t, True, niter=200)
-        if RQC_layers == 9:
-            print("optimizing RQC for 9 layers")
-            V_list = ising1d_dynamics_opt(9, t, True, niter=200, tcg_abstol=1e-12, tcg_reltol=1e-10)
+            if RQC_layers >= 7:
+                print("optimizing RQC for 7 layers")
+                V_list = ising1d_dynamics_opt(7, t, True, niter=200)
+            if RQC_layers == 9:
+                print("optimizing RQC for 9 layers")
+                V_list = ising1d_dynamics_opt(9, t, True, niter=200, tcg_abstol=1e-12, tcg_reltol=1e-10)
 
 
 
@@ -346,8 +347,11 @@ def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, 
     print("F(a_max)^2: ", phis[2](a_values[0])**2)
 
     qc_U_ins = qiskit.QuantumCircuit(L)
-    for i in range(split_U):
-        qc_U_ins.append(qc_U(qcs_rqc, L, perms).to_gate(), [i for i in range(L)])
+    if qc_U_custom is None:
+        for i in range(split_U):
+             qc_U_ins.append(qc_U(qcs_rqc, L, perms).to_gate(), [i for i in range(L)])
+    else:
+        qc_U_ins = qc_U_custom
     qc_QETU = qc_QETU_cf_R(qc_U_ins, phis[0], c2)
     qc_ins = qiskit.QuantumCircuit(L+1)
 
