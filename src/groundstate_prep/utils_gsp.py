@@ -65,7 +65,7 @@ def cU(H, dagger, tau=1, shift=0):
 def QETU(H, phis, tau=1, shift=0):
     U = S(phis[len(phis)-1], len(H))
     for i in range(1, len(phis)):
-        U = U @ cU(H, i % 2 == 1, tau, shift) @ S(phis[len(phis)-1-i], len(H))
+        U = U @ cU(H, i % 2 == 0, tau, shift) @ S(phis[len(phis)-1-i], len(H))
     return U
 
 
@@ -277,6 +277,271 @@ def QETU_cf(U, phis, c2=0):
     for i in range(1, len(phis)):
         Q = Q @ cfree_shifted_U(U, i % 2 == 1, c2) @ S(phis[len(phis)-1-i], len(U))
     return Q
+
+
+def qc_cfU_R(qc_U, dagger, c2):
+    L = qc_U.num_qubits
+    qc_cfU = qiskit.QuantumCircuit(L+1)
+    
+    if dagger:
+        qc_cfU.x(L)
+    
+    qc_cfU.x(L)
+    for j in range(L-1, -1, -1):
+        if j % 2 == 1:
+            qc_cfU.cy(L, j)
+        else:
+            qc_cfU.cz(L, j)
+    qc_cfU.x(L)
+    
+    qc_cfU.append(qc_U.to_gate(), [i for i in range(L)])
+    
+    qc_cfU.x(L)
+    for j in range(L-1, -1, -1):
+        if j % 2 == 1:
+            qc_cfU.cy(L, j)
+        else:
+            qc_cfU.cz(L, j)
+    qc_cfU.x(L)
+
+    qc_cfU.cp(-c2, L, 0)
+    qc_cfU.x(0)
+    qc_cfU.cp(-c2, L, 0)
+    qc_cfU.x(0)
+    
+    if dagger:
+        qc_cfU.x(L)
+    
+    return qc_cfU
+
+
+def qc_QETU_cf_R(qc_U, phis, c2=0):
+    """
+        Control Free Implementation of the QETU Circuit
+        for the TFIM Hamiltonian. Encoded reversely as 
+        qiskit uses Little Endian.
+    """
+    L = qc_U.num_qubits
+    qc = qiskit.QuantumCircuit(L+1)
+    qc.rx(-2*phis[0], L)
+    for i in range(1, len(phis)):
+        qc.append(qc_cfU_R(qc_U, i%2==0, c2).to_gate(), [i for i in range(L+1)])
+        qc.rx(-2*phis[i], L)
+    return qc
+
+
+def qc_QETU_R(qc_cU, phis, c2=0):
+    """
+        Control Free Implementation of the QETU Circuit
+        Encoded reversely as qiskit uses Little Endian.
+    """
+    L = qc_cU[0].num_qubits-1
+    qc = qiskit.QuantumCircuit(L+1)
+    qc.rx(-2*phis[0], L)
+    for i in range(1, len(phis)):
+        if i%2==1:
+            qc.append(qc_cU[0].to_gate(), [i for i in range(L+1)])
+        else:
+            qc.append(qc_cU[1].to_gate(), [i for i in range(L+1)])
+        qc.cp(-c2, L, 0)
+        qc.x(0)
+        qc.cp(-c2, L, 0)
+        qc.x(0)
+        qc.rx(-2*phis[i], L)
+    return qc
+
+
+def qc_QETU_cf_heis_R(qc_U, phis, c2=0, split_U=1):
+    """
+        Control Free Implementation of the QETU Circuit
+        for the Heisenberg Hamiltonian. Encoded 
+        reversely as qiskit uses Little Endian.
+    """
+    qc_U1, qc_U2 = qc_U
+
+    L = qc_U1.num_qubits
+    qc = qiskit.QuantumCircuit(L+1)
+    qc.rx(-2*phis[0], L)
+
+    for i in range(1, len(phis)):
+        qc_cfU_heis_R = qiskit.QuantumCircuit(L+1)
+        if i%2==0:
+            qc_cfU_heis_R.x(L)
+        
+        #U1 ------------
+        # control
+        qc_cfU_heis_R.x(L)
+        for j in range(L-1, -1, -1):
+            if j % 2 == 1:
+                qc_cfU_heis_R.cz(L, j)
+        qc_cfU_heis_R.x(L)
+        #control
+        
+        for l in range(split_U):
+            qc_cfU_heis_R.append(qc_U1.to_gate(), [i for i in range(L)])
+        
+        #control
+        qc_cfU_heis_R.x(L)
+        for j in range(L-1, -1, -1):
+            if j % 2 == 1:
+                qc_cfU_heis_R.cz(L, j)
+        qc_cfU_heis_R.x(L)
+        #control
+
+        #U2 ------------
+        # control
+        qc_cfU_heis_R.x(L)
+        for j in range(L-1, -1, -1):
+            if j % 2 == 1:
+                qc_cfU_heis_R.cx(L, j)
+        qc_cfU_heis_R.x(L)
+        #control
+        
+        for l in range(split_U):
+            qc_cfU_heis_R.append(qc_U2.to_gate(), [i for i in range(L)])
+        
+        
+        #control
+        qc_cfU_heis_R.x(L)
+        for j in range(L-1, -1, -1):
+            if j % 2 == 1:
+                qc_cfU_heis_R.cx(L, j)
+        qc_cfU_heis_R.x(L)
+        #control
+        #-----------------
+
+        qc_cfU_heis_R.cp(-c2, L, 0)
+        qc_cfU_heis_R.x(0)
+        qc_cfU_heis_R.cp(-c2, L, 0)
+        qc_cfU_heis_R.x(0)
+
+        if i%2==0:
+            qc_cfU_heis_R.x(L)
+
+        qc.append(qc_cfU_heis_R.to_gate(), [i for i in range(L+1)])
+        qc.rx(-2*phis[i], L)
+    return qc
+
+
+def cf_heis_U(H1, H2, dagger, c1, c2, nsteps):
+    L = int(np.log(len(H1)) / np.log(2))
+    Y = np.array([[0, -1j], [1j, 0]])
+    Z = np.array([[1, 0], [0, -1]])
+    X = np.array([[0, 1], [1, 0]])
+    I = np.identity(2)
+    
+    X_I = X
+    for j in range(L):
+        X_I = np.kron(X_I, I)
+        
+    K1 = np.identity(1)
+    for j in range(L):
+        if j % 2 == 0:
+            K1 = np.kron(K1, Z)
+        else:
+            K1 = np.kron(K1, I)
+
+    K2 = np.identity(1)
+    for j in range(L):
+        if j % 2 == 0:
+            K2 = np.kron(K2, X)
+        else:
+            K2 = np.kron(K2, I)
+    
+    # Ks is controlled by the ancilla qubit, applied when qubit is 0.
+    cK1  = (1+0j) * np.identity(2*len(H1))
+    offset = len(H1)
+    for i in range(offset):
+        for j in range(offset):
+            cK1[i][j] = K1[i][j]
+    cK2  = (1+0j) * np.identity(2*len(H2))
+    for i in range(offset):
+        for j in range(offset):
+            cK2[i][j] = K2[i][j]
+    
+    t = c1/2
+    dt = t/nsteps
+    cU1 = (1+0j) * np.identity(2*len(H1))
+    cU2 = (1+0j) * np.identity(2*len(H2))    
+    U1 = expm(-1j*dt*H1)
+    U2 = expm(-1j*dt*H2)
+    U_ext1 = np.kron(I, U1)
+    U_ext2 = np.kron(I, U2)
+    cU = np.identity(2*len(H1))
+    cU1 = cK1 @ U_ext1 @ cK1
+    cU2 = cK2 @ U_ext2 @ cK2
+
+    for i in range(nsteps):
+        cU = cU1 @ cU2 @ cU
+    
+    # Shift the global phase, controlled by the ancilla.
+    cC2 = (1+0j) * np.identity(2*len(H1))
+    C2 = expm(-1j*c2*np.identity(offset))
+    for i in range(offset):
+        for j in range(offset):
+            cC2[offset+i][offset+j] = C2[i][j]
+    cU = cC2 @ cU
+    
+    if dagger:
+        cU = X_I @ cU @ X_I
+    return cU
+
+
+def cf_heis_U_singleK(H, dagger, c1, c2):
+    L = int(np.log(len(H)) / np.log(2))
+    Y = np.array([[0, -1j], [1j, 0]])
+    Z = np.array([[1, 0], [0, -1]])
+    X = np.array([[0, 1], [1, 0]])
+    I = np.identity(2)
+    
+    X_I = X
+    for j in range(L):
+        X_I = np.kron(X_I, I)
+        
+    # This K does not work!
+    K_s = np.kron(X@Y, X@Z)
+    K = np.identity(1)
+    for j in range(L//2):
+        K = np.kron(K, K_s)
+    K_dag = K.conj().T
+    
+    # K is controlled by the ancilla qubit, applied when qubit is 0.
+    cK  = (1+0j) * np.identity(2*len(H))
+    offset = len(H)
+    for i in range(offset):
+        for j in range(offset):
+            cK[i][j] = K[i][j]
+
+    # K_dag is controlled by the ancilla qubit, applied when qubit is 0.
+    cK_dag  = (1+0j) * np.identity(2*len(H))
+    for i in range(offset):
+        for j in range(offset):
+            cK_dag[i][j] = K_dag[i][j]
+    
+    cU = (1+0j) * np.identity(2*len(H))
+    U = expm(-1j*c1/2*H)
+    U_ext = np.kron(I, U)
+    cU = cK_dag @ U_ext @ cK
+    
+    # Shift the global phase, controlled by the ancilla.
+    cC2 = (1+0j) * np.identity(2*len(H))
+    C2 = expm(-1j*c2*np.identity(offset))
+    for i in range(offset):
+        for j in range(offset):
+            cC2[offset+i][offset+j] = C2[i][j]
+    cU = cC2 @ cU
+    
+    if dagger:
+        cU = X_I @ cU @ X_I
+    return cU
+
+
+def QETU_heis_cf(H1, H2, phis, c1=1, c2=0, nsteps=1):
+    Q = S(phis[len(phis)-1], len(H1))
+    for i in range(1, len(phis)):
+        Q = Q @ cf_heis_U_singleK(H1, i % 2 == 0, c1, c2) @ S(phis[len(phis)-1-i], len(H1)) 
+    return Q
+
 
     
 

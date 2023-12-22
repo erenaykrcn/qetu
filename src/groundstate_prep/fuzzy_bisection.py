@@ -44,7 +44,8 @@ def fuzzy_bisection(ground_state, l, r, d, tolerence, i, hamil, c1, c2, a_max, m
 def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2, 
                             a_values, depolarizing_error, max_iter = 15, qetu_layers=3, RQC_layers=9, 
                             qetu_initial_state=None, nshots=1e5, ground_state=None, split_U=15, reuse_RQC=0,
-			    lower_treshold=0.4, upper_treshold=0.6, qc_U_custom=None
+			                lower_treshold=0.4, upper_treshold=0.6, qc_U_custom=None,
+                            custom_qc_QETU_cf_R=None, qc_cU_custom=None, hamil=None
     ):
     x = (r+l)/2
     a_max = a_values[0]
@@ -61,7 +62,11 @@ def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2,
         return ((r+l)/2)
     
     t = c1/2
-    last_layer, phis = qetu_rqc_oneLayer(L, J, g, t, x, a_values, d=d, c=c, c2=c2, max_iter_for_phis=phis_max_iter, reuse_RQC=reuse_RQC, RQC_layers=RQC_layers, split_U=split_U, qc_U_custom=qc_U_custom)
+    last_layer, phis, _ = qetu_rqc_oneLayer(L, J, g, t, x, a_values, d=d, c=c, c2=c2, 
+        max_iter_for_phis=phis_max_iter, reuse_RQC=reuse_RQC, RQC_layers=RQC_layers, 
+        split_U=split_U, qc_U_custom=qc_U_custom, custom_qc_QETU_cf_R=custom_qc_QETU_cf_R,
+        qc_cU_custom=qc_cU_custom, hamil=hamil
+        )
 
     qc = qiskit.QuantumCircuit(L+1, 1)
     backend = Aer.get_backend("statevector_simulator")
@@ -90,14 +95,19 @@ def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2,
     x1_error = errors.depolarizing_error(depolarizing_error*0.1, 1)
     x2_error = errors.depolarizing_error(depolarizing_error, 2)
     no_error = errors.depolarizing_error(0, L+1)
+    #x3_error = errors.depolarizing_error(depolarizing_error*10, 3)
     noise_model = NoiseModel()
     noise_model.add_all_qubit_quantum_error(no_error, state_prep_gates)
     noise_model.add_basis_gates(state_prep_gates)
     noise_model.add_all_qubit_quantum_error(x1_error, ['u1', 'u2', 'u3', 'rz', 'sx'])
     noise_model.add_all_qubit_quantum_error(x2_error, ['cu', 'cx','cy', 'cz'])
+    #noise_model.add_all_qubit_quantum_error(x3_error, ['ccx', 'ccy','ccz'])
     print(noise_model)
 
-    A = execute(transpile(qc), backend, noise_model=noise_model, shots=nshots).result().get_counts()["0"]/nshots
+    #print("Layers: ", transpile(qc, basis_gates=noise_model.basis_gates).depth())
+
+    A = execute(transpile(qc), backend, basis_gates=noise_model.basis_gates, 
+        noise_model=noise_model, shots=nshots).result().get_counts()["0"]/nshots
 
 
     # TODO: Determine h!
@@ -105,9 +115,15 @@ def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2,
     print("Success Prob: ", A)
     
     if A > upper_treshold:
-        return fuzzy_bisection_noisy(qc_qetu, L, J, g, (r+l)/2 - h, r, d, tolerence, i+1, c1, c2, a_values, depolarizing_error, max_iter, qetu_layers, RQC_layers,  qetu_initial_state, nshots, ground_state, split_U, reuse_RQC=reuse_RQC)
+        return fuzzy_bisection_noisy(qc_qetu, L, J, g, (r+l)/2 - h, r, d, tolerence, i+1, c1, c2, a_values, 
+            depolarizing_error, max_iter, qetu_layers, RQC_layers,  qetu_initial_state, nshots, ground_state, 
+            split_U, reuse_RQC=reuse_RQC,qc_U_custom=qc_U_custom,custom_qc_QETU_cf_R=custom_qc_QETU_cf_R, 
+            qc_cU_custom=qc_cU_custom,  hamil=hamil)
     elif A < lower_treshold:
-        return fuzzy_bisection_noisy(qc_qetu, L, J, g, l, (r+l)/2 + h, d, tolerence, i+1, c1, c2, a_values, depolarizing_error, max_iter, qetu_layers, RQC_layers, qetu_initial_state, nshots, ground_state, split_U, reuse_RQC=reuse_RQC)
+        return fuzzy_bisection_noisy(qc_qetu, L, J, g, l, (r+l)/2 + h, d, tolerence, i+1, c1, c2, a_values, 
+            depolarizing_error, max_iter, qetu_layers, RQC_layers, qetu_initial_state, nshots, ground_state, 
+            split_U, reuse_RQC=reuse_RQC, qc_U_custom=qc_U_custom,custom_qc_QETU_cf_R=custom_qc_QETU_cf_R, 
+            qc_cU_custom=qc_cU_custom,  hamil=hamil)
     else:
         print("Not steep enough! Search ended!")    
         d = d + 4
@@ -116,5 +132,8 @@ def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2,
         if d > 34:
             return ((r+l)/2)
         else:
-            return fuzzy_bisection_noisy(qc_qetu, L, J, g, l-h, r+h, d, tolerence, i+1, c1, c2, a_values, depolarizing_error, max_iter, qetu_layers, RQC_layers, qetu_initial_state, nshots, ground_state, split_U, reuse_RQC=reuse_RQC)
+            return fuzzy_bisection_noisy(qc_qetu, L, J, g, l-h, r+h, d, tolerence, i+1, c1, c2, a_values, depolarizing_error, 
+                max_iter, qetu_layers, RQC_layers, qetu_initial_state, nshots, ground_state, split_U, 
+                reuse_RQC=reuse_RQC, qc_U_custom=qc_U_custom, custom_qc_QETU_cf_R=custom_qc_QETU_cf_R, 
+                qc_cU_custom=qc_cU_custom,  hamil=hamil)
 

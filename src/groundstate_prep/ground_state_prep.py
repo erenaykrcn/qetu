@@ -67,8 +67,8 @@ def get_success_prob(state, x, d, c, max_iter_for_phis, reps,  hamil, steep = 0.
     success_prob = 0
     layer = 0 
     
-    #QETU_cf_mat = QETU(hamil, phis[0], tau, shift)
-    QETU_cf_mat = QETU_cf(U_tau(hamil, tau), phis[0], c2=shift)
+    QETU_cf_mat = QETU(hamil, phis[0], tau, shift)
+    #QETU_cf_mat = QETU_cf(U_tau(hamil, tau), phis[0], c2=shift)
 
     for i in range(reps):
         layer = i+1

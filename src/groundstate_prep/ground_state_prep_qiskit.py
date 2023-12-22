@@ -12,7 +12,7 @@ from qiskit.providers.aer.noise import NoiseModel, errors
 import rqcopt as oc
 
 from ground_state_prep import get_phis
-from utils_gsp import construct_ising_local_term, approx_polynomial, get_phis, qc_U, qc_U_Strang
+from utils_gsp import construct_ising_local_term, approx_polynomial, get_phis, qc_U, qc_U_Strang, qc_QETU_cf_R, qc_QETU_R, QETU, QETU_heis_cf
 
 import sys
 sys.path.append("../../src/rqcopt")
@@ -226,59 +226,23 @@ def estimate_eigenvalue_counts(counts1, counts2, L, J, g):
     return J*E1 + g*E2
 
 
-def qc_cfU_R(qc_U, dagger, c2):
-    L = qc_U.num_qubits
-    qc_cfU = qiskit.QuantumCircuit(L+1)
-    
-    if dagger:
-        qc_cfU.x(L)
-    
-    qc_cfU.x(L)
-    for j in range(L-1, -1, -1):
-        if j % 2 == 1:
-            qc_cfU.cy(L, j)
-        else:
-            qc_cfU.cz(L, j)
-    qc_cfU.x(L)
-    
-    qc_cfU.append(qc_U.to_gate(), [i for i in range(L)])
-    
-    qc_cfU.x(L)
-    for j in range(L-1, -1, -1):
-        if j % 2 == 1:
-            qc_cfU.cy(L, j)
-        else:
-            qc_cfU.cz(L, j)
-    qc_cfU.x(L)
 
-    qc_cfU.cp(-c2, L, 0)
-    qc_cfU.x(0)
-    qc_cfU.cp(-c2, L, 0)
-    qc_cfU.x(0)
-    
-    if dagger:
-        qc_cfU.x(L)
-    
-    return qc_cfU
+def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, 
+    steep=0.01, max_iter_for_phis=10, RQC_layers=5, 
+    init_state=None, split_U=1, reuse_RQC=0, qc_U_custom=None,
+    custom_qc_QETU_cf_R=None, qc_cU_custom=None, hamil=None,
+    H1=None, H2=None, heis_c2=0
+    ):
+    # One QETU Layer for TFIM Hamiltonian. You can also custom give the time
+    # evolution block and the control-free implementation of QETU.
 
-def qc_QETU_cf_R(qc_U, phis, c2=0):
-    L = qc_U.num_qubits
-    qc = qiskit.QuantumCircuit(L+1)
-    qc.rx(-2*phis[0], L)
-    for i in range(1, len(phis)):
-        qc.append(qc_cfU_R(qc_U, i%2==0, c2).to_gate(), [i for i in range(L+1)])
-        qc.rx(-2*phis[i], L)
-    return qc
-
-
-def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, RQC_layers=5, init_state=None, split_U=1, reuse_RQC=0, qc_U_custom=None):
     t = t/split_U
     print("dt: ", t)
     V_list = []
     dirname = os.path.dirname(os.path.realpath(__file__))
     path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{reuse_RQC if reuse_RQC else L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")
 
-    if qc_U_custom is None:	
+    if qc_U_custom is None and qc_cU_custom is None:	
         try:
             with h5py.File(path, "r") as f:
                 #assert f.attrs["L"] == L
@@ -343,34 +307,42 @@ def qetu_rqc_oneLayer(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, 
                 print(f"QSP did not work for d = {d}, updating d to {d-4}")
                 d = d - 4
 
-
     print("F(a_max)^2: ", phis[2](a_values[0])**2)
+    print("F(a_premax)^2: ", phis[2](a_values[1])**2)
 
     qc_U_ins = qiskit.QuantumCircuit(L)
     if qc_U_custom is None:
         for i in range(split_U):
-             qc_U_ins.append(qc_U(qcs_rqc, L, perms).to_gate(), [i for i in range(L)])
+            qc_U_ins.append(qc_U(qcs_rqc, L, perms).to_gate(), [i for i in range(L)])
     else:
         qc_U_ins = qc_U_custom
-    qc_QETU = qc_QETU_cf_R(qc_U_ins, phis[0], c2)
+    
+    if custom_qc_QETU_cf_R is not None:
+        qc_QETU = custom_qc_QETU_cf_R(qc_U_ins, phis[0], c2, split_U=split_U)
+    elif qc_cU_custom is not None:
+        qc_QETU = qc_QETU_R(qc_cU_custom, phis[0], c2)
+    else:
+        qc_QETU = qc_QETU_cf_R(qc_U_ins, phis[0], c2)
+
     qc_ins = qiskit.QuantumCircuit(L+1)
 
+    QETU_mat = None
+    if hamil is not None and H1 is None:
+        backend = Aer.get_backend("unitary_simulator")
+        qc_unit = execute(transpile(qc_QETU), backend).result().get_unitary(qc_QETU, L+1).data
+        QETU_mat = QETU(hamil, phis[0], t, c2)
+        print("QETU Error: ", np.linalg.norm(qc_unit-QETU_mat, ord=2))
 
-    backend = Aer.get_backend("unitary_simulator")
-    qc_U_unit = execute(transpile(qc_U_ins), backend).result().get_unitary(qc_U_ins, L+1).data
-    
-    # construct Hamiltonian
-    import qib
-    import scipy
-    latt = qib.lattice.IntegerLattice((L,), pbc=True)
-    field = qib.field.Field(qib.field.ParticleType.QUBIT, latt)
-    hamil = qib.IsingHamiltonian(field, J, 0, g).as_matrix().toarray()
-    U = scipy.linalg.expm(-1j*hamil*t*split_U)
-    print("Time evolution encoding, absolute error: ", np.linalg.norm(U-qc_U_unit, ord=2))
+    if H1 is not None and H2 is not None:
+        QETU_mat = QETU_heis_cf(H1, H2, phis[0], t, heis_c2, 10)
+        backend = Aer.get_backend("unitary_simulator")
+        qc_unit = execute(transpile(qc_QETU), backend).result().get_unitary(qc_QETU, L+1).data
+        print("QETU Error: ", np.linalg.norm(qc_unit-QETU_mat, ord=2))
+
 
     if init_state is not None:
         qc_ins.initialize(init_state)
     qc_ins.append(qc_QETU.to_gate(), [i for i in range(L+1)])
 
 
-    return qc_ins, phis[0]
+    return qc_ins, phis[0], QETU_mat
