@@ -73,7 +73,7 @@ def estimate_phases(L, J, g, prepared_state, eigenvalues_sort, tau, N, shots, de
             phase_estimates_with_noise.append((t, phase_est))
             exact_phase = np.exp(-1j*t*eigenvalues_sort[0])
             phase_exacts.append((t, exact_phase))
-            print(phase_est)
+            #print(phase_est)
         except KeyError:
             continue
     return phase_estimates_with_noise, phase_exacts

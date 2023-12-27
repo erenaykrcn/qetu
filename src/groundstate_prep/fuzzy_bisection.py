@@ -38,7 +38,11 @@ def fuzzy_bisection(ground_state, l, r, d, tolerence, i, hamil, c1, c2, a_max, m
     else:
         print("Not steep enough!")    
         d = d + 4
-        return fuzzy_bisection(ground_state, l-h, r+h, d, tolerence, i+1, hamil, c1, c2, a_max)
+        
+        if d > 34:
+            return ((r+l)/2)
+        else:
+            return fuzzy_bisection(ground_state, l-h, r+h, d, tolerence, i+1, hamil, c1, c2, a_max)
 
 
 def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2, 
@@ -95,13 +99,13 @@ def fuzzy_bisection_noisy(  qc_qetu, L, J, g, l, r, d, tolerence, i, c1, c2,
     x1_error = errors.depolarizing_error(depolarizing_error*0.1, 1)
     x2_error = errors.depolarizing_error(depolarizing_error, 2)
     no_error = errors.depolarizing_error(0, L+1)
-    #x3_error = errors.depolarizing_error(depolarizing_error*10, 3)
+    x3_error = errors.depolarizing_error(depolarizing_error, 3)
     noise_model = NoiseModel()
     noise_model.add_all_qubit_quantum_error(no_error, state_prep_gates)
     noise_model.add_basis_gates(state_prep_gates)
     noise_model.add_all_qubit_quantum_error(x1_error, ['u1', 'u2', 'u3', 'rz', 'sx'])
     noise_model.add_all_qubit_quantum_error(x2_error, ['cu', 'cx','cy', 'cz'])
-    #noise_model.add_all_qubit_quantum_error(x3_error, ['ccx', 'ccy','ccz'])
+    noise_model.add_all_qubit_quantum_error(x3_error, ['ccx', 'ccy','ccz'])
     print(noise_model)
 
     #print("Layers: ", transpile(qc, basis_gates=noise_model.basis_gates).depth())
