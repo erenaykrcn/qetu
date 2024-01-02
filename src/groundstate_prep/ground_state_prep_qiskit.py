@@ -57,7 +57,8 @@ def get_error_from_sv(qc, qc_H, depolarizing_error, reps, L, J, g, ev, nshots=1e
     return np.linalg.norm(np.sum(E_nps)/E_nps.size - ev)
 
 
-def prepare_ground_state_qiskit(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, max_iter_for_phis=10, repeat_qetu=3, RQC_layers=3, init_state=None):
+def prepare_ground_state_qiskit(L, J, g, t, mu, a_values, c2=0, d=30, c=0.95, steep=0.01, 
+        max_iter_for_phis=10, repeat_qetu=3, RQC_layers=3, init_state=None, ground_state=None, reuse_RQC=False):
     V_list = []
     dirname = os.path.dirname(os.path.realpath(__file__))
     path = os.path.join(dirname, f"../../src/rqcopt/results/ising1d_L{reuse_RQC if reuse_RQC else L}_t{t}_dynamics_opt_layers{RQC_layers}.hdf5")

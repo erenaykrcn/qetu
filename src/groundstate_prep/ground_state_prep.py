@@ -10,7 +10,8 @@ def prepare_ground_state(initial_state, mu, d, c, phis_max_iter,
                          ground_state, L, J, g, ground_eigenvalue,
                          hamil, max_reps=5, tau=1, 
                          shift=0, a_max=1, fidelity_treshold=0.99):
-    success_prob, end_state, poly, phis, layers, QETU_cf_mat  = get_success_prob(initial_state, mu, d, c, phis_max_iter, max_reps, hamil, tau=tau, shift=shift, a_max=a_max)
+    success_prob, end_state, poly, phis, layers, QETU_cf_mat  = get_success_prob(initial_state, mu, d, c, phis_max_iter, 
+        max_reps, hamil, tau=tau, shift=shift, a_max=a_max, ground_state=ground_state)
     eigenvalue_estimate = 0
     print("\nF(a_max) = " + str(poly(a_max)**2))
 
@@ -31,7 +32,7 @@ def prepare_ground_state(initial_state, mu, d, c, phis_max_iter,
     return end_state, eigenvalue_estimate
 
 
-def get_success_prob(state, x, d, c, max_iter_for_phis, reps,  hamil, steep = 0.01, tau=1, shift=0, a_max=0):
+def get_success_prob(state, x, d, c, max_iter_for_phis, reps,  hamil, steep = 0.01, tau=1, shift=0, a_max=0, ground_state=None):
     i = 0
     phis = []
     n = int(np.log(state.shape[0])/np.log(2)) - 1
@@ -90,6 +91,10 @@ def get_success_prob(state, x, d, c, max_iter_for_phis, reps,  hamil, steep = 0.
         success_prob = prob_0**2
         end_state = end_state_0 / prob_0
         poly = phis[2]
+
+        if ground_state is not None:
+            print(state_fidelity(end_state, ground_state))
+
         if a_max and np.abs(success_prob - poly(a_max)**2) < 1e-5:
             break
     return success_prob, end_state, poly, phis[0], layer, QETU_cf_mat
