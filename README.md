@@ -63,7 +63,7 @@ Lower bound of the eigenvalue is dependent on the outcome of the previous search
 <p>We analyze the same estimation process for L=8 sites, while using the optimization results for the L=6 case. We observe that we can use the Riemannian optimized Time Evolution Block for time steps around dt = 1. However, for larger time steps we cannot optimize the two qubit gates for L=6 and use it for L=8. Hence, after a certain target precision, circuit depth starts scaling exponentially and noise becomes prominent. The estimation results for L=8 while using the optimization results from L=6, are as follows:  </p>
 
 <p align="center">
-  <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/L8_results.png">
+  <img src="https://github.com/erenaykrcn/qetu/blob/main/theory/figures/TFIM_8_errors.png">
   <br>
   <p><b>Figure 9:</b>  Absolute Error rate of the estimated ground state energy plotted against the time step required in each time evolution block, under different noise levels. Transverse Field Ising Hamiltonian (TFIM) with parameters: L=8, J=1, h=0, g=1 is used. For encoding the time evolution block, the same two qubit gates from the optimization for L = 6 are used, up until the time step ≈ 10. For the time steps larger than this, we split the total time into dt = t / nsteps values, such that dt stays smaller than 10. This introduces an exponential scaling for the circuit depth after a certain target precision of around 1e-05 and smaller. Hence, the effect of noise becomes more prominent and we observe plateaus for the simulations with noise.</p>
 </p>
